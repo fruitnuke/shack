@@ -1,106 +1,87 @@
 import sys
 import getopt
-import subprocess
 
-version = 1.00
-verbose = False
+import shavs
 
 
-"""Context Manager class for establishing and terminating
-communication with the SHA Implementation Under Test (IUT)."""
-class IUT:
+class Options:
+    verbose = False
+    num_checkpoints = 100
+    run_all = True
+    run_short = False
+    run_long = False
+    run_pseudo = False
 
-    def __enter__(self):
-        self.p = subprocess.Popen(
-            ["python", "-u", "../proto.py"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        return self
+
+class Output:
+    def __init__(self, name, options, fail_message):
+        self.name = name
+        self.options = options
+        self.fail_message = fail_message
+        self.suite_passed = True
+        self.total = 0
+        self.failed = 0
+
+    def preamble(self):
+        sys.stdout.write("Running %s message tests ..." % self.name)
+
+    def on_test(self, passed, fail_details):
+        if self.suite_passed and not passed:
+            self.suite_passed = False
+            if self.options.verbose:
+                sys.stdout.write("\n")
+
+        if self.options.verbose and not passed:
+            self.fail_message(fail_details)
+            self.failed += 1
+            
+        self.total += 1
         
-    def __exit__(self, type, value, traceback):
-        self.p.terminate()
+    def postamble(self):
+        if self.suite_passed:
+            print " OK (%i)" % self.total
+        elif not self.suite_passed:
+            print " FAILED (%i of %i)" % (self.failed, self.total)
+
+            
+def chain_fail_msg(fail_details):
+    print "[FAIL] seed %s... @ checkpoint %s: %s... != %s..." % (
+        fail_details["seed"][:7].ljust(7),
+        fail_details["checkpoint"],
+        fail_details["actual"][:10],
+        fail_details["expected"][:10])            
+
+    
+def hash_fail_msg(fail_details):
+    message = fail_details["message"]
+    print "[FAIL] %s (%s): %s... != %s..." % (
+        message[:7].ljust(7),
+        str(len(message)).ljust(3),
+        fail_details["actual"][:10],
+        fail_details["expected"][:10])
 
 
-"""Return the value from a string such as "Len = 20/r/n" representing
-a name-value pair read from a SHAVS test file."""
-def parse(s):
-    return s.strip("[]\r\n").partition("=")[2].strip()
+def do_tests(iut, options, test_f, tests, ui):
+    ui.preamble()
+    for passed, faildetails in shavs.do_tests(iut, options, test_f, tests):
+        ui.on_test(passed, faildetails)
+    ui.postamble()
 
 
-def read_hash_tests(filename):
-    tests = []
-    with open(filename) as f:
-        while True:
-            line = f.readline()
-            if not line:
-                break
-            if line.startswith("Len"):
-                length = int(parse(line))
-                msg = parse(f.readline())
-                # Hack, because test file contains msg 0x00 of length
-                # 0, and bitstring doesn't like these values as
-                # initializers'
-                if length == 0:
-                    msg = ''
-                digest = parse(f.readline())
-                tests.append((length, msg, digest))
-    return tests
-
-
-def read_chain_tests(filename):
-    tests = []
-    with open(filename) as f:
-        for line in f:
-            if line.startswith(("Seed", "MD")):
-                tests.append(parse(line))
-    return tests
-
-
-# def hash_test(tests):
-#     results = []
-#     with IUT() as iut:
-#         for test in tests:
-#             iut.p.stdin.write(test[1] + '\n')
-#             iut.p.stdin.flush()
-#             digest = iut.p.stdout.readline().strip()
-#             results.append((test[2] == digest, test))
-
-#     return results
-
-def hash_test(tests):
-    with IUT() as iut:
-        for test in tests:
-            iut.p.stdin.write(test[1] + '\n')
-            iut.p.stdin.flush()
-            digest = iut.p.stdout.readline().strip()
-            yield test[2] == digest, test, digest
-
-def chain_test(seed):
-    tohash = seed
-    results = []
-    with IUT() as iut:
-        for i in range(1, 100000):
-            iut.p.stdin.write(tohash + '\n')
-            iut.p.stdin.flush()
-            digest = iut.p.stdout.readline().strip()
-            if (i % 1000) == 0:
-                results.append(digest)
-            tohash = digest
-    return results
-
-
-def print_results(results):
-    global verbose
-    success = reduce(lambda x, y: x and y[0], results, True)
-    if success:
-        print " OK."
-    else:
-        print " FAILED"
-        if verbose:
-            for r in results:
-                if not r[0]:
-                    print "Hashing %s-bit message: FAILED" % r[1][0]
+def all_tests(options):    
+    with shavs.IUT() as iut:
+        if options.run_all or options.run_short:
+            do_tests(iut, options, shavs.hash_test,
+                     shavs.hash_test_cases("./byte-vectors/SHA1ShortMsg.txt"),
+                     Output("short", options, hash_fail_msg))
+        if options.run_all or options.run_long:
+            do_tests(iut, options, shavs.hash_test,
+                     shavs.hash_test_cases("./byte-vectors/SHA1LongMsg.txt"),
+                     Output("long", options, hash_fail_msg))
+        if options.run_all or options.run_pseudo:
+            do_tests(iut, options, shavs.chain_test,
+                     shavs.chain_test_case("./byte-vectors/SHA1Monte.txt"),
+                     Output("pseudorandom generated", options, chain_fail_msg))
 
 
 def usage():
@@ -109,72 +90,54 @@ Run informal NIST secure hash algorithm tests (SHAVS) using test files
 in the subdirectories.
 
 Mandatory arguments to long options are mandatory for short options too.
-  -v, --verbose  display more information during testing.
-      --help     display this help and exit
-      --version  output version information and exit
+  -v, --verbose        Display more information during testing.
+      --help           Display this help and exit.
+      --checkpoints=N  Number of checkpoints for the pseudo-random message
+                       test.
+      --short          Run short message tests (default runs all).
+      --long           Run long message tests (default runs all).
+      --pseudo         Run pseudo-random message tests (default runs all).
 
 (C) copyright Dan Boswell 2011"""
-                
-                
-def run_tests():
-    global verbose, version
-
+    
+    
+def process_args():
+    options = Options()
     try:
         opts, args = getopt.getopt(
-            sys.argv[1:], "v", ["help", "verbose", "version"])
+            sys.argv[1:], "v", ["help", "verbose", "checkpoints=",
+                                "short", "long", "pseudo"])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(1)
     verbose = False
     for o, a in opts:
+        if o in ("--short", "--long", "--pseudo"):
+            options.run_all = False
         if o in ("-v", "--verbose"):
-            verbose = True
+            options.verbose = True
+        elif o in ("--short"):
+            options.run_short = True
+        elif o in ("--long"):
+            options.run_long = True
+        elif o in ("--pseudo"):
+            options.run_pseudo = True
+        elif o in ("--checkpoints"):
+            options.num_checkpoints = a
         elif o == "--help":
             usage()
             sys.exit()
-        elif o == "--version":
-            print "test.py version %s" % version
-            sys.exit()
         else:
             assert False, "unhandled option"
+    return options
+
+        
+def main():
+    options = process_args()
+    all_tests(options)
+
     
-    filename = "./byte-vectors/SHA1ShortMsg.txt"
-    short_tests = read_hash_tests(filename)
-    filename = "./byte-vectors/SHA1LongMsg.txt"
-    long_tests = read_hash_tests(filename)
-    # filename = "./byte-vectors/SHA1Monte.txt"
-    # monte_chain = read_chain_tests(filename)
-
-    failed = False
-    sys.stdout.write("Running short message tests (%i) ..." % len(short_tests))
-    for passed, test, digest in hash_test(short_tests):
-        if not passed:
-            if not failed:
-                failed = True
-                if verbose:
-                    sys.stdout.write("\n")
-            if verbose:
-                print "[FAIL] %s (%s): %s... != %s..." % (
-                    test[1][:7].ljust(7), str(test[0]).ljust(3), digest[:10], test[2][:10])
-    if not failed:
-        print " OK"
-    if failed and not verbose:
-        print " FAILED"
-        
-#     sys.stdout.write("Running long message tests (%i) ..." % len(short_tests))
-#     print_results(hash_test(long_tests))
-
-#     sys.stdout.write("Running pseudorandomly generated messages test ...")
-#     results = chain_test(monte_chain[0])
-#     success = reduce(lambda a, u: a and (u[0] == u[1]),
-#                      zip(results, monte_chain), True)
-#     if success:
-#         print " OK"
-#     else:
-#         print " FAILED"
-#         if verbose: print results
-
-        
 if __name__ == "__main__":
-    run_tests()
+    main()
+        

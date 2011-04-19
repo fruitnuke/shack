@@ -2,9 +2,6 @@ import sys
 
 from bitstring import BitArray, ConstBitArray
 
-# take in message as an encoded hexadecimal string via stdin, and
-# print a message digest to stdout (new line \n as the eol signal).
-
 
 def pad(message):
     m = BitArray(message)
