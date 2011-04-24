@@ -1,0 +1,49 @@
+Goal: Show as part of my profile that I can manage all aspects of a
+project: 
+
+ - spec
+ - design
+   - choice of tools, libraries, design tradeoffs, simplicity vs functionality
+ - test-driven development
+ - prototyping
+ - rapid iterations / agile
+ - build environment
+   - [no need for continuous integration as sole developer]
+   - post-build checks
+   - one-click builds, testing and profiling
+ - profiling, checking and optimization
+   - using profiling and leak checking tools (automate as much as poss)
+   - profiling-guided optimization
+ - cross-platform
+   - build on win and linux, one code base
+ - [internationalization and localization]
+ - bug tracking
+ - refactoring
+ - coding quality, standards and clarity
+ - documentation
+ - packaging
+ - release
+
+
+
+
+--------------------------------------------------------------------------------
+Possible blog posts:
+
+- Review and experience of using TRACE-DOG.
+
+- Choosing tools for a project
+  - Boost (of course. not embedded)
+  - Tracing / Logging library
+  - Profiling
+  - Unit testing
+  - Correctness (debug heap, checked stl, memory leak detector)
+  - Build
+  - Compiler tool chain
+  
+- Choosing coding policies
+  - enough has been said about coding standards
+  - exception and error handling policy - trade-offs
+  - asserts vs unit-tests vs debugger vs tracing
+  - 3rd party libraries, roll your own.
+

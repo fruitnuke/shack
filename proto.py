@@ -76,8 +76,8 @@ def t_iter(t, a, b, c, d, e, sched):
 
 def dohash(blocks, seed):
     ihash = seed
-    for b in blocks:
-        sched = schedule(b)
+    for block in blocks:
+        sched = schedule(block)
         a, b, c, d, e = [n for n in ihash.cut(32)]
         for t in range(0, 80):
             a, b, c, d, e = t_iter(t, a, b, c, d, e, sched)
