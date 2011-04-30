@@ -6,9 +6,12 @@ from bitstring import BitArray
 """Context Manager class for establishing and terminating
 communication with the SHA Implementation Under Test (IUT)."""
 class IUT:
+    def __init__(self, options):
+        self.args = options.exelist
+    
     def __enter__(self):
         self.p = subprocess.Popen(
-            ["python", "-u", "../proto.py"],
+            self.args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
@@ -73,7 +76,7 @@ def hash_test(iut, options, (msg, expected_digest)):
             
 def chain_test(iut, options, (seed_str, checkpoints)):
     seed = BitArray(hex=seed_str)
-    for j in range(0, int(options.num_checkpoints)):
+    for j in range(0, int(options.checkpoints)):
         m1 = m2 = m3 = seed
         for i in range(0, 1000):
             msg = m3 + m2 + m1

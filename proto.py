@@ -23,9 +23,9 @@ def preprocess(message):
 def schedule(block):
     s = [block[t:t+1:32] for t in range(0, block.len / 32)]
     for t in range(16, 80):
-         x = (s[t-3] ^ s[t-8] ^ s[t-14] ^ s[t-16])
-         x.rol(1)
-         s.append(x)
+        x = (s[t-3] ^ s[t-8] ^ s[t-14] ^ s[t-16])
+        x.rol(1)
+        s.append(x)
     return s 
 
 
@@ -68,9 +68,6 @@ def t_iter(t, a, b, c, d, e, sched):
     c = b
     b = a
     a = T
-    # print "t = %s: %s  %s  %s  %s  %s" % (
-    #     str(t).rjust(2), a.hex[2:].upper(), b.hex[2:].upper(),
-    #     c.hex[2:].upper(), d.hex[2:].upper(), e.hex[2:].upper())
     return a, b, c, d, e
 
 

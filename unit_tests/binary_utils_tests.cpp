@@ -84,3 +84,75 @@ BOOST_AUTO_TEST_CASE(not_really_empty_bitstring)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(binary_functions)
+
+BOOST_AUTO_TEST_CASE(rotate_left)
+{
+    BOOST_CHECK(bits::rotl32(0x11111111, 1) == 0x22222222);
+    BOOST_CHECK(bits::rotl32(0x11111111, 2) == 0x44444444);
+    BOOST_CHECK(bits::rotl32(0x11111111, 3) == 0x88888888);
+    BOOST_CHECK(bits::rotl32(0x11111111, 4) == 0x11111111);
+    BOOST_CHECK(bits::rotl32(0x00000001, 32) == 0x00000001);
+    BOOST_CHECK(bits::rotl32(0x00000001, 31) == 0x80000000);
+    BOOST_CHECK(bits::rotl32(0x00000001, 33) == 0x00000002);
+    BOOST_CHECK(bits::rotl32(0x00000001, 0) == 0x00000001);
+}
+
+BOOST_AUTO_TEST_CASE(bits_to_uint32)
+{
+    {
+        array<unsigned char, 4> bits {0x00, 0x00, 0x00, 0xFF};
+        BOOST_CHECK(bits::to_uint32(bits) == 0xFF);
+    }
+    {
+        array<unsigned char, 4> bits {0x00, 0x00, 0xFF, 0x00};
+        BOOST_CHECK(bits::to_uint32(bits) == 0xFF00);
+    }
+    {
+        array<unsigned char, 4> bits {0x00, 0xFF, 0x00, 0x00};
+        BOOST_CHECK(bits::to_uint32(bits) == 0xFF0000);
+    }
+    {
+        array<unsigned char, 4> bits {0xFF, 0x00, 0x00, 0x00};
+        BOOST_CHECK(bits::to_uint32(bits) == 0xFF000000);
+    }
+    {
+        array<unsigned char, 4> bits {0x01, 0x23, 0x45, 0x67};
+        BOOST_CHECK(bits::to_uint32(bits) == 19088743);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(bits_from_uint32)
+{
+    {
+        array<unsigned char, 4> expected {0x01, 0x23, 0x45, 0x67};
+        array<unsigned char, 4> bits = bits::from_uint32(19088743);
+        BOOST_CHECK(equal(bits.begin(), bits.end(), expected.begin()));
+    }
+    {
+        array<unsigned char, 4> expected {0x00, 0x00, 0x00, 0xFF};
+        array<unsigned char, 4> bits = bits::from_uint32(0xFF);
+        BOOST_CHECK(equal(bits.begin(), bits.end(), expected.begin()));
+    }
+    {
+        array<unsigned char, 4> expected {0x00, 0x00, 0xFF, 0x00};
+        array<unsigned char, 4> bits = bits::from_uint32(0xFF00);
+        BOOST_CHECK(equal(bits.begin(), bits.end(), expected.begin()));
+    }
+    {
+        array<unsigned char, 4> expected {0x00, 0xFF, 0x00, 0x00};
+        array<unsigned char, 4> bits = bits::from_uint32(0xFF0000);
+        BOOST_CHECK(equal(bits.begin(), bits.end(), expected.begin()));
+    }
+    {
+        array<unsigned char, 4> expected {0xFF, 0x00, 0x00, 0x00};
+        array<unsigned char, 4> bits = bits::from_uint32(0xFF000000);
+        BOOST_CHECK(equal(bits.begin(), bits.end(), expected.begin()));
+    }
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
