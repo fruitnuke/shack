@@ -6,8 +6,8 @@
 #include <algorithm>
 
 // #include <tracedog/tracing.hpp>
-// #include <iostream>
-// #include <iomanip>
+#include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -52,6 +52,11 @@ sha1::hash(const vector<unsigned char>& message)
          block_it < padded.end(); 
          advance(block_it, BLOCK_SIZE))
     {
+        // cout << "block  " << std::hex << setfill('0');
+        // for(auto i = block_it; i < block_it + BLOCK_SIZE; ++i)
+        //     cout << setw(2) << static_cast<unsigned short>(*i);
+        // cout << dec << endl;
+
         array<uint32_t, 16> block;
         array<unsigned char, 4> word;
 
@@ -60,6 +65,13 @@ sha1::hash(const vector<unsigned char>& message)
             copy_n(block_it + (i*4), 4, word.begin()); 
             block[i] = bits::to_uint32(word);
         }
+
+        // cout << "uint32 " << std::hex << setfill('0');
+        // for (auto i = block.begin(); i != block.end(); ++i)
+        // {
+        //     cout << setw(8) << *i;
+        // }
+        // cout << dec << endl;
 
         hash_block(block, hash);
     }
@@ -82,10 +94,14 @@ sha1::hash(const vector<unsigned char>& message)
 void pad(vector<unsigned char>& message)
 {
     vector<unsigned char> tmp(message);
+
     uint64_t bit_length = tmp.size() * 8;
+    // cout << "(pad) bit length " << dec << bit_length << endl;
+
+    unsigned int pad_bytes = (64 - (tmp.size() + 9)) % 64;
+    // cout << "(pad) pad_bytes " << dec << pad_bytes << endl;
+
     tmp.push_back(0x80); 
-   
-    unsigned int pad_bytes = 56 - (tmp.size() % 56);
     tmp.insert(tmp.end(), pad_bytes, 0x00);
 
     // cast to unsigned char instead?

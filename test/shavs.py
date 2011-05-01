@@ -46,7 +46,7 @@ def hash_test_cases(filename):
                 if length == 0:
                     msg = ''
                 digest = parse(f.readline())
-                yield (msg, digest)
+                yield (msg, length, digest)
 
 
 def chain_test_case(filename):
@@ -61,13 +61,14 @@ def chain_test_case(filename):
     yield (seed, checkpoints)
 
             
-def hash_test(iut, options, (msg, expected_digest)):
+def hash_test(iut, options, (msg, length, expected_digest)):
     iut.p.stdin.write(msg + '\n')
     iut.p.stdin.flush()
     actual_digest = iut.p.stdout.readline().strip()
     if actual_digest != expected_digest:
         faildetails = {}
         faildetails["message"] = msg
+        faildetails["len"] = length
         faildetails["expected"] = expected_digest
         faildetails["actual"] = actual_digest
         return False, faildetails

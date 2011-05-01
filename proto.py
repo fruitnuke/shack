@@ -5,7 +5,7 @@ from bitstring import BitArray, ConstBitArray
 
 def pad(message):
     m = BitArray(message)
-    padsz = 512 - ((m.len + 65) % 512)
+    padsz = (512 - (m.len + 65)) % 512
     m.append([1] + BitArray(padsz) + BitArray(uint=m.len, length=64))
     return m
 
@@ -74,6 +74,7 @@ def t_iter(t, a, b, c, d, e, sched):
 def dohash(blocks, seed):
     ihash = seed
     for block in blocks:
+        # print block.hex
         sched = schedule(block)
         a, b, c, d, e = [n for n in ihash.cut(32)]
         for t in range(0, 80):
@@ -96,6 +97,8 @@ def sha1(message):
 def main():
     m = sys.stdin.readline().strip()
     while m != "quit":
+        # print m
+        # print int(m, 16)
         print sha1(BitArray(hex=m))
         m = sys.stdin.readline().strip()
 
