@@ -1,5 +1,6 @@
 #include "sha1.h"
 #include "binary_utils.h"
+#include "hexstream.h"
 #include <iterator>
 #include <iostream>
 #include <tracedog/tracing.hpp>
@@ -8,22 +9,31 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+    // Improve performance of stdin / stdout by not using c stdio
+    // library.
+    ios::sync_with_stdio(false);
+    cin.exceptions(ios_base::badbit);   
+
+    // What is this?
+    // std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
+    
     TRDG_INITIALIZE_LIB();
     TRDG_START_TRACING();
 
-    istream_iterator<vector<unsigned char>> eos;
-    istream_iterator<vector<unsigned char>> in (cin);
-    try
+    vector<unsigned char> bits;
+    hexstream hexs(cin.rdbuf());
+    while (!hexs.eof())
     {
-        for (; in != eos; ++in)
+        hexs >> bits;
+        if (hexs.good())
         {
-            cout << sha1::hash(*in) << endl;
+            cout << sha1::hash(bits) << endl;
+        }
+        else if (hexs.fail() && !hexs.eof())
+        {
+            cout << "Invalid hex string." << endl;
+            hexs.clear();
         }
     }
-    catch (const hex::ParseError& e)
-    {
-        cout << "Parse error: " << e.what() << endl;
-    }
-    
     return 0;
 }

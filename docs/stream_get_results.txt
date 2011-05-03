@@ -1,0 +1,74 @@
+test sequence: ""
+|len 0, cnt 0, state: eof fail , next -1
+FAIL (EOF)
+
+test sequence: "\n"
+|len 0, cnt 0, state: fail , next -1
+**GOOD - empty bitstring
+
+test sequence: "a"
+a|len 1, cnt 0, state: eof fail , next -1
+FAIL (EOF)
+
+test sequence: "a\n"
+a|len 1, cnt 0, state: good , next 10
+|len 0, cnt 0, state: fail , next -1
+**FAIL (not byte-aligned)
+
+test sequence: "ab"
+ab|len 2, cnt 0, state: eof fail , next -1
+FAIL (EOF)
+
+test sequence: "ab\n"
+ab|len 2, cnt 0, state: good , next 10
+|len 0, cnt 0, state: fail , next -1
+GOOD
+
+test sequence: "abc"
+ab|len 2, cnt 0, state: good , next 99
+c|len 1, cnt 0, state: eof fail , next -1
+FAIL (EOF)
+
+test sequence: "abc\n"
+ab|len 2, cnt 0, state: good , next 99
+c|len 1, cnt 0, state: good , next 10
+|len 0, cnt 0, state: fail , next -1
+**FAIL (not byte aligned)
+
+
+if eof: fail
+if fail but not eof:
+   
+while (true)
+{
+   in.get(byte_chars, 3);
+
+   if (in.eof())
+   {
+      break;
+   }
+   else if (good && len == 1)
+   {
+      assert(in.peek() == "\n"); 
+      in.clear(in.rdstate() | ios_base::failbit);
+      in.ignore();
+      break;
+   }
+   else if (good && len == 2)
+   {
+      // add to bits
+      continue;
+   }
+   else if (fail && len == 0):
+   {  // means we've consumed hex-string delimiter 
+      // without extra non-byte aligned hex = end of hex string.
+      swap(bits, buf);
+      break;
+   }
+   else
+   {  
+      assert(false);
+   }
+}
+return in;
+    

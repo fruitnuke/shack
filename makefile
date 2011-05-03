@@ -1,9 +1,9 @@
 VPATH=unit_tests
-SHARED_OBJECTS=sha1.o binary_utils.o 
+SHARED_OBJECTS=sha1.o binary_utils.o hexstream.o
 SHACK_OBJECTS=main.o
 TESTDIR=unit_tests/
-TEST_OBJECTS=TestRunner.o sha1_tests.o binary_utils_tests.o
-CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -DTRACEDOG_ENABLE_MACROS -DDEBUG # -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC 
+TEST_OBJECTS=TestRunner.o sha1_tests.o binary_utils_tests.o hexstream_tests.o
+CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -DTRACEDOG_ENABLE_MACROS -DDEBUG -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC 
 LFLAGS=/mnt/data/vol/src/lib/tracedog/lib/libtracedog.a
 
 all: shared shack $(TESTDIR)tests
@@ -33,6 +33,7 @@ $(TESTDIR)tests: $(addprefix $(TESTDIR),$(TEST_OBJECTS)) $(SHARED_OBJECTS)
 
 $(TESTDIR)sha1_tests.o: sha1.h $(TESTDIR)sha1_impl.h
 $(TESTDIR)binary_utils_tests.o: binary_utils.h
+$(TESTDIR)hexstream_tests.o: hexstream.h
 
 main.o: sha1.h binary_utils.h
 

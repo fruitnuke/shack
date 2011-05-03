@@ -26,50 +26,50 @@ ostream& std::operator<<(ostream& out, const vector<unsigned char>& bits)
     return out;
 }
 
-istream& std::operator>>(istream& in, vector<unsigned char>& bits)
-{
-    locale loc;
-    char c;
-    long len = 0;
-    vector<unsigned char> buf;
-    char byte = 0;
-    char h_val = 0;
+// istream& std::operator>>(istream& in, vector<unsigned char>& bits)
+// {
+//     locale loc;
+//     char c;
+//     long len = 0;
+//     vector<unsigned char> buf;
+//     char byte = 0;
+//     char h_val = 0;
 
-    for(in.get(c); !isspace(c, loc); in.get(c))
-    {
-        if (c >= 48 && c <= 57) 
-            h_val = c - 48;
-        else if (c >= 65 && c <= 70) 
-            h_val = (c - 65) + 0xA;
-        else if (c >= 97 && c <= 102)
-            h_val = (c - 97) + 0xA;
-        else 
-        {
-            throw hex::ParseError("invalid character in hex string");
-        }
+//     for(in.get(c); !isspace(c, loc); in.get(c))
+//     {
+//         if (c >= 48 && c <= 57) 
+//             h_val = c - 48;
+//         else if (c >= 65 && c <= 70) 
+//             h_val = (c - 65) + 0xA;
+//         else if (c >= 97 && c <= 102)
+//             h_val = (c - 97) + 0xA;
+//         else 
+//         {
+//             throw bits::ParseError("invalid character in hex string");
+//         }
 
-        ++len;
+//         ++len;
 
-        if (len % 2 != 0)
-        {
-            byte = h_val << 4;
-        }
-        else
-        {
-            byte += h_val;
-            buf.push_back(byte);
-            byte = 0;
-        }
-    }
+//         if (len % 2 != 0)
+//         {
+//             byte = h_val << 4;
+//         }
+//         else
+//         {
+//             byte += h_val;
+//             buf.push_back(byte);
+//             byte = 0;
+//         }
+//     }
     
-    if (len % 2 != 0)
-    {
-        throw hex::ParseError("hex string is not byte-oriented");
-    }
+//     if (len % 2 != 0)
+//     {
+//         throw bits::ParseError("hex string is not byte-oriented");
+//     }
 
-    swap(bits, buf);
-    return in;
-}
+//     swap(bits, buf);
+//     return in;
+// }
 
 uint32_t bits::rotl32(uint32_t word, unsigned short places)
 {
