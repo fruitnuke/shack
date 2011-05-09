@@ -3,7 +3,8 @@ SHARED_OBJECTS=sha1.o binary_utils.o hexstream.o
 SHACK_OBJECTS=main.o
 TESTDIR=unit_tests/
 TEST_OBJECTS=TestRunner.o sha1_tests.o binary_utils_tests.o hexstream_tests.o
-CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -DTRACEDOG_ENABLE_MACROS -DDEBUG -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC 
+CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -DTRACEDOG_ENABLE_MACROS -DDEBUG
+#-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 LFLAGS=/mnt/data/vol/src/lib/tracedog/lib/libtracedog.a
 
 all: shared shack $(TESTDIR)tests
@@ -12,7 +13,7 @@ all: shared shack $(TESTDIR)tests
 shared: $(SHARED_OBJECTS)
 
 shack: $(SHACK_OBJECTS) $(SHARED_OBJECTS)
-	$(CXX) $(SHACK_OBJECTS) $(SHARED_OBJECTS) $(LFLAGS) -o $@
+	$(CXX) $(SHACK_OBJECTS) $(SHARED_OBJECTS) $(LFLAGS) -lboost_program_options -o $@
 
 shavs: shack
 	cd test; python test.py --verbose --short ../shack

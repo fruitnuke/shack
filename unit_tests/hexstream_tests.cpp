@@ -75,4 +75,49 @@ BOOST_AUTO_TEST_CASE(handle_upper_and_lower_case)
     BOOST_CHECK(hexs.fail() && hexs.eof());
 }
 
+BOOST_AUTO_TEST_CASE(empty_string)
+{
+    istringstream in("\n");
+    hexstream hexs(in.rdbuf());
+    vector<unsigned char> bits;
+    
+    hexs >> bits;
+    BOOST_CHECK(bits.size() == 0);
+    BOOST_CHECK(hexs.good());
+}
+
+BOOST_AUTO_TEST_CASE(empty_stream)
+{
+    istringstream in("");
+    hexstream hexs(in.rdbuf());
+    vector<unsigned char> bits;
+    
+    hexs >> bits;
+    BOOST_CHECK(bits.size() == 0);
+    BOOST_CHECK(hexs.fail() && hexs.eof());
+}
+
+BOOST_AUTO_TEST_CASE(string_of_zeros)
+{
+    istringstream in("00\n");
+    hexstream hexs(in.rdbuf());
+    vector<unsigned char> bits;
+    
+    hexs >> bits;
+    BOOST_CHECK(bits.size() == 1);
+    BOOST_CHECK(hexs.good());
+    BOOST_CHECK(bits[0] == 0);
+}
+
+BOOST_AUTO_TEST_CASE(delimit_by_end_of_stream)
+{
+    istringstream in("ab");
+    hexstream hexs(in.rdbuf());
+    vector<unsigned char> bits;
+    
+    hexs >> bits;
+    BOOST_CHECK(bits.size() == 0);
+    BOOST_CHECK(hexs.fail() && hexs.eof());
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -15,7 +15,7 @@ private:
     unsigned char ch_to_bin(char);
     bool hex_chars_for_next_byte(char&, char&);
     bool end_of_string();
-    void chomp_end();
+    void ignore_newline_and_remnant();
 };
 
 #endif

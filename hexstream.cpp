@@ -2,8 +2,10 @@
 #include <cassert>
 #include <cstring>
 #include <array>
+#include <limits>
 #include <boost/io/ios_state.hpp>
 
+#include <iostream>
 using namespace std;
 
 
@@ -30,18 +32,6 @@ bool hexstream::end_of_string()
     return peek() == '\n';
 }
 
-void hexstream::chomp_end()
-{
-    // Regardless of the state of the stream, we need it to be good in
-    // order to chomp any remaining hex string and delimiter.
-    boost::io::ios_iostate_saver error_state(*this);
-    clear(); 
-    
-    while (!end_of_string())
-        ignore();
-    ignore();
-}
-
 bool hexstream::hex_chars_for_next_byte(char& high, char& low)
 {
     array<char, 3> buf;
@@ -60,6 +50,12 @@ bool hexstream::hex_chars_for_next_byte(char& high, char& low)
     return false;
 }
 
+void hexstream::ignore_newline_and_remnant()
+{
+    boost::io::ios_iostate_saver prior_state(*this, ios_base::goodbit);
+    ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
 istream& hexstream::operator>>(vector<unsigned char>& bits)
 {
     vector<unsigned char> buf;
@@ -73,8 +69,10 @@ istream& hexstream::operator>>(vector<unsigned char>& bits)
         buf.push_back(ch_to_bin(high) << 4 | ch_to_bin(low));
     }
 
-    if (!eof())
-        chomp_end();
+    if (eof() && !fail())
+        this->clear(this->rdstate() | ios_base::failbit);
+
+    ignore_newline_and_remnant();
 
     if (good())
         swap(bits, buf);
