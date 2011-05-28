@@ -16,7 +16,7 @@ shack: $(SHACK_OBJECTS) $(SHARED_OBJECTS)
 	$(CXX) $(SHACK_OBJECTS) $(SHARED_OBJECTS) $(LFLAGS) -lboost_program_options -o $@
 
 shavs: shack
-	cd test; python test.py --verbose --short ../shack
+	cd test; python test.py --verbose --short "../shack --hex"
 
 correct:
 # set debug heap, examing for memory leaks

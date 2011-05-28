@@ -1,7 +1,6 @@
 #include "sha1.h"
 #include "binary_utils.h"
 #include "hexstream.h"
-#include <iterator>
 #include <iostream>
 #include <fstream>
 #include <tracedog/tracing.hpp>
@@ -11,40 +10,8 @@ using namespace std;
 
 namespace po = boost::program_options;
 
-// po::variables_map parse_options(int argc, char** argv)
-// {
-//     po::options_description desc("Allowed options");
-//     desc.add_options()
-//         ("hex", "interpret input as hex strings instead of binary.");
-    
-//     po::variables_map vm;
-//     po::store(po::parse_command_line(argc, argv, desc), vm);
-//     po::notify(vm); 
-
-//     return vm;
-// }
-
-
-int main(int argc, char** argv)
+po::variables_map parse_options(int argc, char** argv)
 {
-    // Improve performance of stdin / stdout by not using c stdio
-    // library.
-    ios::sync_with_stdio(false);
-
-    // What is this?
-    // std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
-    
-    TRDG_INITIALIZE_LIB();
-    TRDG_START_TRACING();
-
-// po::positional_options_description p;
-// p.add("input-file", -1);
-
-// po::variables_map vm;
-// po::store(po::command_line_parser(ac, av).
-//           options(desc).positional(p).run(), vm);
-// po::notify(vm);
-
     po::options_description desc("Allowed options");
     desc.add_options()
         ("hex", "interpret input as hex strings instead of binary.")
@@ -60,14 +27,27 @@ int main(int argc, char** argv)
     po::variables_map vm;
     po::store(parser.run(), vm);
     po::notify(vm); 
+    return vm;
+}
+
+int main(int argc, char** argv)
+{
+    ios::sync_with_stdio(false);
+
+    // What is this?
+    // std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
+    
+    TRDG_INITIALIZE_LIB();
+    TRDG_START_TRACING();
+
+    po::variables_map options = parse_options(argc, argv);
 
     vector<unsigned char> bits;
 
     try
     {
-        if (vm.count("hex"))
+        if (options.count("hex"))
         {
-//            cout << "hexstring input specified." << endl;
             hexstream in(cin.rdbuf());
             in.exceptions(ios_base::badbit);
             while (!in.eof())
@@ -89,14 +69,14 @@ int main(int argc, char** argv)
         {
             // TODO: handle file failures (inc. file doesn't exist)
             // TODO: Profile. Pretty slow on a 20 MB file.
-            if (!vm.count("file"))
+            if (!options.count("file"))
             {
                 cerr << "Need to specify an input file." << endl;
                 return 1;;
             }
     
             ifstream in;
-            in.open(vm["file"].as<string>(), ios::in | ios::binary);
+            in.open(options["file"].as<string>(), ios::in | ios::binary);
             if (in.is_open())
             {
                 in.seekg(0, ios::end);
@@ -114,8 +94,6 @@ int main(int argc, char** argv)
         cerr << exc.what() << endl; 
         throw;
     }
-
-
 
     return 0;
 }
