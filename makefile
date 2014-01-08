@@ -3,9 +3,9 @@ SHARED_OBJECTS=sha1.o binary_utils.o hexstream.o
 SHACK_OBJECTS=main.o
 TESTDIR=unit_tests/
 TEST_OBJECTS=TestRunner.o sha1_tests.o binary_utils_tests.o hexstream_tests.o
-CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -DTRACEDOG_ENABLE_MACROS -DDEBUG
+CXXFLAGS=-g -std=c++0x -DDEBUG
+LFLAGS=-L/usr/local/lib
 #-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-LFLAGS=/mnt/data/vol/src/lib/tracedog/lib/libtracedog.a
 
 all: shared shack $(TESTDIR)tests
 	$(TESTDIR)tests
@@ -21,7 +21,7 @@ shavs: shack
 correct:
 # set debug heap, examing for memory leaks
 
-profile: CXXFLAGS=-g -std=c++0x -I/mnt/data/vol/src/lib/tracedog/inc -pg
+profile: CXXFLAGS=-g -std=c++0x -pg
 profile: $(SHACK_OBJECTS) $(SHARED_OBJECTS)
 	$(CXX) $(SHACK_OBJECTS) $(SHARED_OBJECTS) -ltcmalloc -o $@
 	./test/test.py --short ../shack

@@ -3,7 +3,6 @@
 #include "hexstream.h"
 #include <iostream>
 #include <fstream>
-#include <tracedog/tracing.hpp>
 #include <boost/program_options.hpp>
 
 using namespace std;
@@ -37,9 +36,6 @@ int main(int argc, char** argv)
     // What is this?
     // std::set_terminate (__gnu_cxx::__verbose_terminate_handler);
     
-    TRDG_INITIALIZE_LIB();
-    TRDG_START_TRACING();
-
     po::variables_map options = parse_options(argc, argv);
 
     vector<unsigned char> bits;

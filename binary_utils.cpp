@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cassert>
 #include <iomanip>
-// #include <tracedog/tracing.hpp>
 
 using namespace std;
 
