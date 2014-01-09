@@ -9,7 +9,7 @@ tampered with or changed (e.g. when downloading a file from a server).
 	$ shack ubuntu-12.04.3-desktop-amd64.iso
 	c09241f9a5c1eeae26ebf72116427c5f76177d6a
 
-**Disclaimer**: _I am not a cryptography. This program should not be used as part of
+**Disclaimer**: _I am not a cryptographer. This program should not be used as part of
   any cryptographic system to provide security or privacy. It likely contains
   bugs and I will not be held responsible for any consequences incurred through
-  the mis-use of this program._
+  the misuse of this program._
